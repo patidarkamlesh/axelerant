@@ -1,0 +1,55 @@
+<?php
+
+/**
+ * @file
+ * Primarily Drupal hooks and global API functions to manipulate Drupal Core.
+ */
+
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Routing\RequestContext;
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Entity\Display\EntityViewDisplayInterface;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Drupal\node\Entity\Node;
+
+/**
+ * implements hook_form_FORM_ID_alter
+ */
+function siteapi_form_system_site_information_settings_alter(&$form, FormStateInterface $form_state) {
+    $form['site_information']['siteapikey'] = [
+        '#type' => 'textfield',
+        '#title' => t('Site API Key'),
+        '#description' => t('Enter API KEY'),
+        '#default_value' => Drupal::config('system.site')->get('siteapikey') ? Drupal::config('system.site')->get('siteapikey') : t('No API Key yet'),
+    ];
+    //For JSON Page URL
+    if(!empty(Drupal::config('system.site')->get('siteapikey'))) {
+        $form['json_page'] = [
+          '#type' => 'details',
+          '#title' => t('JSON page'),
+          '#open' => TRUE,
+        ];
+        $form['json_page']['site_jsonpage'] = [
+          '#type' => 'textfield',
+          '#title' => t('JSON page'),
+          '#default_value' => Drupal::config('system.site')->get('site_jsonpage'),
+          '#size' => 40,
+          '#description' => t("Please Enter a Node ID for Content type 'Page'"),
+          '#field_prefix' => Drupal::request()->getSchemeAndHttpHost().Drupal::request()->getBaseUrl().'/page_json/'.Drupal::config('system.site')->get('siteapikey').'/',
+        ];
+    }
+    $form['actions']['submit']['#value'] = t('Update Configuration');
+    $form['#submit'][] = 'siteapi_system_site_information_siteapi_submit';
+}
+/**
+ * To save Site API Key from Site information Form page
+ */
+function siteapi_system_site_information_siteapi_submit(&$form, FormStateInterface $form_state) {
+    $config = Drupal::configFactory()->getEditable('system.site');
+    if($form_state->getValue('siteapikey') != 'No API Key yet') {
+       $config->set('siteapikey', $form_state->getValue('siteapikey'))->save(); 
+    }
+    if(!empty($form_state->getValue('site_jsonpage'))) {
+       $config->set('site_jsonpage', $form_state->getValue('site_jsonpage'))->save(); 
+    }
+}

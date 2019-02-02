@@ -1,0 +1,6 @@
+## YAML Template.
+name: Site API
+description: A module to create a URL for Page which contains Site API Key
+type: module
+core: 8.x
+package: Axelerant
